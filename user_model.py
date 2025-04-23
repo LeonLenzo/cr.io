@@ -2,7 +2,7 @@ import os
 import hashlib
 import bcrypt
 from datetime import datetime
-from db_utils_supabase import get_supabase_session, get_user_by_username, create_user, update_user, delete_user
+from db_utils import get_supabase_session, get_user_by_username, create_user, update_user, delete_user
 
 class User:
     """User model for Supabase"""

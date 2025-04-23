@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Import Supabase modules
-from db_utils_supabase import get_supabase_session, init_supabase_tables
-from user_model_supabase import User
-from auth_supabase import login_user, display_user_info
-from user_management_supabase import display_user_management, create_initial_admin
+from db_utils import get_supabase_session, init_supabase_tables
+from user_model import User
+from auth import login_user, display_user_info
+from user_management import display_user_management, create_initial_admin
 
 # Import other modular components
 # Note: These would need to be updated to use Supabase as well

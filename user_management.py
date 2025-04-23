@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from user_model_supabase import User
-from auth_supabase import require_admin, require_login
+from user_model import User
+from auth import require_admin, require_login
 
 def display_user_management():
     """Display user management interface for admins"""

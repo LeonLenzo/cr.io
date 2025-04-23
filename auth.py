@@ -2,8 +2,8 @@ import streamlit as st
 import os
 from functools import wraps
 from datetime import datetime
-from user_model_supabase import User
-from db_utils_supabase import get_supabase_session
+from user_model import User
+from db_utils import get_supabase_session
 
 def login_user():
     """Display login form and authenticate user"""

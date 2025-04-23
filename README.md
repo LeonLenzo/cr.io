@@ -1,28 +1,62 @@
 # cr.io - Cryogenic Information Management System
 
-A Streamlit-based Laboratory Information Management System (LIMS) for tracking samples in cryogenic storage.
+A Streamlit-based Laboratory Information Management System (LIMS) for tracking samples in cryogenic storage. This application helps laboratories manage their freezer inventory, track samples, and maintain a complete history of sample movements and modifications.
 
-## Supabase Integration
+## Features
 
-This application has been updated to use Supabase as a secure cloud database backend. This provides several security benefits:
+- **Hierarchical Storage Management**: Organize samples in freezers, racks, and boxes
+- **Sample Tracking**: Track sample details, locations, and history
+- **User Management**: Role-based access control (admin, user, readonly)
+- **Search Capabilities**: Find samples quickly with basic and advanced search
+- **Data Visualization**: Analyze storage utilization and sample distribution
+- **Secure Cloud Database**: Store data securely in Supabase PostgreSQL database
 
-- Data is stored in a secure PostgreSQL database in the cloud
-- Authentication is more secure with bcrypt password hashing
-- Rate limiting for login attempts
-- Separation of database credentials from application code
-- Automatic backups and database management
+## Prerequisites
 
-## Setup Instructions
+Before you begin, you'll need:
 
-### 1. Create a Supabase Account and Project
+- **GitHub Account**: For forking the repository and deploying to Streamlit Cloud
+- **Supabase Account**: For the cloud database (free tier available)
+- **Streamlit Cloud Account**: For hosting the application (free tier available)
+- **Python 3.8+**: For local development (optional)
 
-1. Sign up for a free account at [Supabase](https://supabase.com/)
-2. Create a new project
-3. Note your project URL and API keys (anon key and service role key)
+## Step-by-Step Setup Guide
 
-### 2. Set Up Database Tables in Supabase
+### 1. Fork the Repository
 
-Create the following tables in your Supabase project using the SQL Editor:
+1. Visit the [cr.io GitHub repository](https://github.com/yourusername/cr.io)
+2. Click the "Fork" button in the top-right corner
+3. Clone your forked repository to your local machine (optional for local development):
+   ```bash
+   git clone https://github.com/yourusername/cr.io.git
+   cd cr.io
+   ```
+
+### 2. Set Up Supabase
+
+1. **Create a Supabase Account**:
+   - Go to [Supabase](https://supabase.com/) and sign up for a free account
+   - Verify your email address
+
+2. **Create a New Project**:
+   - Click "New Project" in the Supabase dashboard
+   - Enter a name for your project (e.g., "cr-io-lims")
+   - Set a secure database password (save this for your records)
+   - Choose the region closest to your users
+   - Click "Create new project"
+
+3. **Get Your API Keys**:
+   - Once your project is created, go to the project dashboard
+   - In the left sidebar, click "Project Settings" → "API"
+   - Note down your:
+     - Project URL (e.g., https://abcdefghijklm.supabase.co)
+     - `anon` public key (starts with "eyJ...")
+     - `service_role` secret key (for admin operations)
+
+4. **Create Database Tables**:
+   - In the left sidebar, click "SQL Editor"
+   - Click "New Query"
+   - Copy and paste the following SQL code:
 
 ```sql
 -- Users table
@@ -103,34 +137,54 @@ CREATE TABLE sample_history (
 );
 ```
 
-# Supabase credentials
+5. **Run the SQL Query**:
+   - Click the "Run" button to create all the tables
+   - Verify that all tables were created successfully in the "Table Editor" section
 
-Create a .toml file for the secrets area of your streamlit app, an example is provided below:
+### 3. Local Development Setup (Optional)
 
-[supabase]
-url = "https://yourproject.supabase.co"
-key = "your_key"
-service_key = "your_service_key"
+If you want to run the application locally before deploying:
 
-# Admin settings
-[admin]
-initial_password = "a_strong_password"
+1. **Install Python Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# Environment settings
-[environment]
-mode = "development"
+2. **Create Environment Variables**:
+   - Create a `.env` file in the project root with your Supabase credentials:
+   ```
+   SUPABASE_URL=https://your-project-url.supabase.co
+   SUPABASE_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_KEY=your-supabase-service-role-key
+   ADMIN_INITIAL_PASSWORD=choose-a-strong-password
+   ```
 
-## Deploying to Streamlit Cloud
+3. **Run the Application Locally**:
+   ```bash
+   streamlit run app.py
+   ```
 
-1. Push your code to a GitHub repository
+4. **Access the Application**:
+   - Open your browser and go to `http://localhost:8501`
+   - The first time you run the app, it will create an admin user with:
+     - Username: `admin`
+     - Password: The value you set for `ADMIN_INITIAL_PASSWORD`
 
-2. Log in to [Streamlit Cloud](https://streamlit.io/cloud)
+### 4. Deploy to Streamlit Cloud
 
-3. Create a new app and connect it to your GitHub repository
+1. **Create a Streamlit Account**:
+   - Go to [Streamlit Cloud](https://streamlit.io/cloud) and sign up
+   - Connect your GitHub account when prompted
 
-4. Set the main file path to `app/app_supabase.py`
+2. **Create a New App**:
+   - Click "New app" in the Streamlit dashboard
+   - Select your forked repository
+   - Set the main file path to `app.py`
+   - Click "Deploy"
 
-5. Add your Supabase credentials as secrets in the Streamlit Cloud dashboard:
+3. **Add Secrets to Streamlit Cloud**:
+   - In your deployed app settings, click on "Secrets"
+   - Add the following secrets in TOML format:
    ```toml
    [supabase]
    url = "https://your-project-url.supabase.co"
@@ -139,9 +193,35 @@ mode = "development"
 
    [admin]
    initial_password = "your-admin-password"
+
+   [environment]
+   mode = "production"
    ```
 
-6. Deploy the app
+4. **Reboot the App**:
+   - After adding secrets, click "Reboot app" to apply the changes
+
+5. **Access Your Deployed App**:
+   - Click on the URL provided by Streamlit Cloud
+   - Log in with the admin credentials (username: `admin`, password: your chosen admin password)
+
+### 5. Initial Configuration
+
+After deploying, you should:
+
+1. **Change the Admin Password**:
+   - Log in with the default admin credentials
+   - Go to "User Management" → "My Profile"
+   - Use the "Change Password" form to set a new secure password
+
+2. **Create Additional Users**:
+   - Go to "User Management" → "Add User"
+   - Create accounts for your team members with appropriate roles
+
+3. **Add Your First Freezer**:
+   - Go to "Sample Management"
+   - Use the "Add Freezer" form to create your first freezer
+   - Add racks and boxes to organize your storage
 
 ## Security Best Practices
 
@@ -149,7 +229,10 @@ mode = "development"
 
 2. **Regular Backups**: Supabase provides automatic backups, but you can also export your data regularly
 
-3. **Access Control**: Use the role-based access control system to limit user permissions
+3. **Access Control**: Use the role-based access control system to limit user permissions:
+   - **Admin**: Full access to all features, including user management
+   - **User**: Can add, edit, and view samples, but cannot manage users
+   - **ReadOnly**: Can only view samples, cannot make changes
 
 4. **Audit Logs**: Review the sample history logs regularly to monitor for suspicious activity
 
@@ -172,3 +255,12 @@ mode = "development"
 - **Connection Issues**: Ensure your Supabase credentials are correct and that your IP is not blocked
 - **Authentication Problems**: Check that the users table is properly set up in Supabase
 - **Data Access Errors**: Verify that your Supabase policies allow the necessary operations
+- **Application Errors**: Check the Streamlit Cloud logs for error messages
+
+## Support and Contributions
+
+If you encounter any issues or have suggestions for improvements, please open an issue on the GitHub repository. Contributions are welcome through pull requests!
+
+---
+
+*This project uses Streamlit for the frontend and Supabase for the backend, providing a secure and scalable solution for laboratory sample management.*

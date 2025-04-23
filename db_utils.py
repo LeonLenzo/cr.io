@@ -3,9 +3,65 @@ import streamlit as st
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from contextlib import contextmanager
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from model import Base
 
 # Load environment variables
 load_dotenv()
+
+#############################
+# SQLite Database Functions #
+#############################
+
+# --- Setup the SQLite database ---
+def init_db(db_path="sqlite:///samples.db"):
+    """Initialize the database and create all tables"""
+    engine = create_engine(db_path, echo=False, connect_args={"check_same_thread": False})
+    Base.metadata.create_all(engine)
+    return sessionmaker(bind=engine)
+
+# Create the session factory
+SessionLocal = init_db()
+
+@contextmanager
+def get_db_session():
+    """Context manager for database sessions"""
+    session = SessionLocal()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+def backup_sqlite_database(backup_dir="backups"):
+    """Create a backup of the SQLite database"""
+    import shutil
+    from datetime import datetime
+    
+    # Create backup directory if it doesn't exist
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+    
+    # Generate backup filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_file = os.path.join(backup_dir, f"samples_backup_{timestamp}.db")
+    
+    # Copy the database file
+    try:
+        shutil.copy2("samples.db", backup_file)
+        print(f"Database backed up to {backup_file}")
+        return True
+    except Exception as e:
+        print(f"Backup failed: {e}")
+        return False
+
+#############################
+# Supabase Database Functions #
+#############################
 
 # Get Supabase credentials from environment variables or secrets
 def get_supabase_credentials():
@@ -62,9 +118,9 @@ def init_supabase_tables():
         print(f"Failed to connect to Supabase: {e}")
         return False
 
-def backup_database(backup_dir="backups"):
+def backup_supabase_database(backup_dir="backups"):
     """
-    Create a backup of the database
+    Create a backup of the Supabase database
     
     For Supabase, you can use their built-in backup system or
     export data to JSON/CSV files
@@ -97,6 +153,13 @@ def backup_database(backup_dir="backups"):
     except Exception as e:
         print(f"Backup failed: {e}")
         return False
+
+# Unified backup function that tries both methods
+def backup_database(backup_dir="backups"):
+    """Create a backup of the database (tries both SQLite and Supabase)"""
+    sqlite_result = backup_sqlite_database(backup_dir)
+    supabase_result = backup_supabase_database(backup_dir)
+    return sqlite_result or supabase_result
 
 # Helper functions for common database operations
 

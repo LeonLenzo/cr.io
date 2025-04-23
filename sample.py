@@ -90,7 +90,10 @@ def display_sample_form(session, selected_box):
                 "notes": sample.notes,
                 "species": sample.species,
                 "resistance": sample.resistance,
-                "regulation": sample.regulation
+                "date_created": sample.date_created,
+                "strain": sample.strain,
+                "ogtr": sample.ogtr,
+                "daff": sample.daff
             }
 
         with st.form("sample_form"):
@@ -113,25 +116,56 @@ def display_sample_form(session, selected_box):
             with row2_col2:
                 notes = st.text_area("Notes", value=prefill.get("notes", ""))
 
+            # Add date created and strain fields
+            row3_col1, row3_col2 = st.columns(2)
+            with row3_col1:
+                date_created = st.text_input("Date Created", value=prefill.get("date_created", ""))
+            with row3_col2:
+                strain = st.text_input("Strain", value=prefill.get("strain", ""))
+            
             if sample_type == "Cell Line":
-                cell_col1, cell_col2, cell_col3 = st.columns(3)
+                # Species and resistance
+                cell_col1, cell_col2 = st.columns(2)
                 with cell_col1:
                     species = st.text_input("Species", value=prefill.get("species", ""))
                 with cell_col2:
                     resistance = st.text_input("Resistance", value=prefill.get("resistance", ""))
-                with cell_col3:
-                    regulation = st.text_input("Regulation", value=prefill.get("regulation", ""))
+                
+                # OGTR options
+                st.subheader("OGTR")
+                ogtr_options = ["Wildtype", "NLRD", "DNIR"]
+                ogtr_default = prefill.get("ogtr", "").split(",") if prefill.get("ogtr") else []
+                ogtr_selected = []
+                ogtr_cols = st.columns(len(ogtr_options))
+                for i, option in enumerate(ogtr_options):
+                    with ogtr_cols[i]:
+                        if st.checkbox(option, value=option in ogtr_default, key=f"ogtr_{option}"):
+                            ogtr_selected.append(option)
+                ogtr = ",".join(ogtr_selected)
+                
+                # DAFF options
+                st.subheader("DAFF")
+                daff_options = ["State Quarantine", "Federal Quarantine"]
+                daff_default = prefill.get("daff", "").split(",") if prefill.get("daff") else []
+                daff_selected = []
+                daff_cols = st.columns(len(daff_options))
+                for i, option in enumerate(daff_options):
+                    with daff_cols[i]:
+                        if st.checkbox(option, value=option in daff_default, key=f"daff_{option}"):
+                            daff_selected.append(option)
+                daff = ",".join(daff_selected)
             else:
-                species = resistance = regulation = ""
+                species = resistance = ""
+                ogtr = daff = ""
 
             submitted = st.form_submit_button("Save Sample")
             if submitted:
-                save_sample(session, sample, selected_box, sample_name, sample_type, well, owner, notes, species, resistance, regulation)
+                save_sample(session, sample, selected_box, sample_name, sample_type, well, owner, notes, species, resistance, date_created, strain, ogtr, daff)
 
         if st.session_state.selected_well and prefill:
             handle_sample_deletion(session, selected_box)
 
-def save_sample(session, sample, selected_box, sample_name, sample_type, well, owner, notes, species, resistance, regulation):
+def save_sample(session, sample, selected_box, sample_name, sample_type, well, owner, notes, species, resistance, date_created, strain, ogtr, daff):
     """Save a new sample or update an existing one with validation and history tracking"""
     try:
         # Sanitize inputs
@@ -141,7 +175,10 @@ def save_sample(session, sample, selected_box, sample_name, sample_type, well, o
         notes = sanitize_input(notes)
         species = sanitize_input(species)
         resistance = sanitize_input(resistance)
-        regulation = sanitize_input(regulation)
+        date_created = sanitize_input(date_created)
+        strain = sanitize_input(strain)
+        ogtr = sanitize_input(ogtr)
+        daff = sanitize_input(daff)
         
         # Validate sample data
         validate_sample_form(
@@ -179,8 +216,17 @@ def save_sample(session, sample, selected_box, sample_name, sample_type, well, o
             if sample.resistance != resistance:
                 changes.append(("resistance", sample.resistance, resistance))
             
-            if sample.regulation != regulation:
-                changes.append(("regulation", sample.regulation, regulation))
+            if sample.date_created != date_created:
+                changes.append(("date_created", sample.date_created, date_created))
+            
+            if sample.strain != strain:
+                changes.append(("strain", sample.strain, strain))
+            
+            if sample.ogtr != ogtr:
+                changes.append(("ogtr", sample.ogtr, ogtr))
+            
+            if sample.daff != daff:
+                changes.append(("daff", sample.daff, daff))
             
             # Update sample
             sample.sample_name = sample_name
@@ -190,7 +236,10 @@ def save_sample(session, sample, selected_box, sample_name, sample_type, well, o
             sample.notes = notes
             sample.species = species
             sample.resistance = resistance
-            sample.regulation = regulation
+            sample.date_created = date_created
+            sample.strain = strain
+            sample.ogtr = ogtr
+            sample.daff = daff
             
             session.commit()
             
@@ -212,7 +261,10 @@ def save_sample(session, sample, selected_box, sample_name, sample_type, well, o
                 notes=notes,
                 species=species,
                 resistance=resistance,
-                regulation=regulation,
+                date_created=date_created,
+                strain=strain,
+                ogtr=ogtr,
+                daff=daff,
                 box_id=selected_box.id,
                 rack_id=selected_box.rack_id,
                 freezer_name=selected_box.freezer_name
@@ -298,7 +350,7 @@ def display_bulk_upload(session, selected_box):
     ).all()
     existing = {s.well: s for s in samples}
 
-    columns = ["freezer", "rack", "box", "well", "sample_name", "sample_type", "owner", "notes", "species", "resistance", "regulation"]
+    columns = ["freezer", "rack", "box", "well", "sample_name", "sample_type", "owner", "notes", "species", "resistance", "date_created", "strain", "ogtr", "daff"]
     data = []
     for well in all_wells:
         s = existing.get(well)
@@ -306,10 +358,10 @@ def display_bulk_upload(session, selected_box):
             data.append([
                 s.freezer, s.rack, s.box, s.well,
                 s.sample_name, s.sample_type, s.owner,
-                s.notes, s.species, s.resistance, s.regulation
+                s.notes, s.species, s.resistance, s.date_created, s.strain, s.ogtr, s.daff
             ])
         else:
-            data.append([freezer, rack, box, well, "", "", "", "", "", "", ""])
+            data.append([freezer, rack, box, well, "", "", "", "", "", "", "", "", "", ""])
 
     df = pd.DataFrame(data, columns=columns)
     
@@ -364,21 +416,21 @@ def process_uploaded_csv(session, uploaded):
                     session.delete(existing_sample)
             else:
                 # Sanitize inputs
-                for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "regulation"]:
+                for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "date_created", "strain", "ogtr", "daff"]:
                     if col in row:
                         row[col] = sanitize_input(row[col])
                 
                 if existing_sample:
                     # Track changes
                     changes = []
-                    for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "regulation"]:
+                    for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "date_created", "strain", "ogtr", "daff"]:
                         old_value = getattr(existing_sample, col)
                         new_value = row[col]
                         if old_value != new_value:
                             changes.append((existing_sample, col, old_value, new_value))
                     
                     # Update sample
-                    for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "regulation"]:
+                    for col in ["sample_name", "sample_type", "owner", "notes", "species", "resistance", "date_created", "strain", "ogtr", "daff"]:
                         setattr(existing_sample, col, row[col])
                     
                     if changes:
@@ -396,7 +448,10 @@ def process_uploaded_csv(session, uploaded):
                         notes=row["notes"],
                         species=row["species"],
                         resistance=row["resistance"],
-                        regulation=row["regulation"],
+                        date_created=row["date_created"],
+                        strain=row["strain"],
+                        ogtr=row["ogtr"],
+                        daff=row["daff"],
                         box_id=row["box"],
                         rack_id=row["rack"],
                         freezer_name=row["freezer"]

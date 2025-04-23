@@ -49,7 +49,11 @@ class Sample(Base):
     notes = Column(Text)
     species = Column(String)
     resistance = Column(String)
-    regulation = Column(String)
+    date_created = Column(String)  # New field for date created
+    strain = Column(String)  # New field for strain
+    ogtr = Column(String)  # New field for OGTR (Wildtype, NLRD, DNIR)
+    daff = Column(String)  # New field for DAFF (State Quarantine, Federal Quarantine)
+    # regulation field is being replaced by ogtr and daff
 
     # Add these fields to match your queries
     freezer = Column(String, nullable=False)

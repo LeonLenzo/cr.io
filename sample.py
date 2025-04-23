@@ -33,7 +33,7 @@ def display_sample_management():
                 
                 # If a well was just selected, show a message to click on the Add/Edit Sample tab
                 if "switch_to_sample_form" in st.session_state and st.session_state.switch_to_sample_form:
-                    st.info("Sample selected! Click on the 'Add/Edit Sample' tab to edit it.")
+                    st.info("Click on the 'Add/Edit Sample' tab to edit.")
                     st.session_state.switch_to_sample_form = False
                 
                 # Show all tabs normally

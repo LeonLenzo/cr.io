@@ -1,0 +1,31 @@
+# Core dependencies
+streamlit>=1.22.0
+pandas>=1.5.3
+numpy>=1.24.3
+sqlalchemy>=2.0.0
+python-dotenv>=1.0.0
+
+# Supabase integration
+supabase>=1.0.3
+postgrest>=0.10.6
+
+# Security
+bcrypt>=4.0.1
+cryptography>=40.0.0
+
+# Data visualization
+plotly>=5.14.0
+matplotlib>=3.7.1
+seaborn>=0.12.2
+
+# Date/time handling
+pytz>=2023.3
+
+# File handling
+openpyxl>=3.1.2
+xlrd>=2.0.1
+
+# Optional: for development
+pytest>=7.3.1
+black>=23.3.0
+flake8>=6.0.0
